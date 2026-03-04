@@ -123,12 +123,32 @@ for ne, report in health_report.items():
 # MODULE 3 – EMAIL REPORT
 # ==============================
 
+# from emailer import EmailReport
+
+# SENDER_EMAIL = "frasermsusa@gmail.com"
+# SENDER_PASSWORD = "ejcmrkbcpxflkwxn"
+# TEST_RECIPIENT = "frasermsusa@gmail.com"
+
+# email_report = EmailReport(SENDER_EMAIL, SENDER_PASSWORD)
+
+# email_report.send_email(TEST_RECIPIENT, health_report)
+
+# ==============================
+# MODULE 4 – PROFESSIONAL EMAIL
+# ==============================
+
 from emailer import EmailReport
 
 SENDER_EMAIL = "frasermsusa@gmail.com"
 SENDER_PASSWORD = "ejcmrkbcpxflkwxn"
-TEST_RECIPIENT = "frasermsusa@gmail.com"
+
+RECIPIENTS = ["frasermsusa@gmail.com"]  # can add more later
 
 email_report = EmailReport(SENDER_EMAIL, SENDER_PASSWORD)
 
-email_report.send_email(TEST_RECIPIENT, health_report)
+email_report.send_email(
+    RECIPIENTS,
+    health_report,
+    pivot_data,
+    file_path
+)
