@@ -15,47 +15,84 @@ class EmailReport:
         self.sender_email = sender_email
         self.sender_password = sender_password
 
-    # Generate Multiple KPI Charts
+    # Generate graph
+    def generate_graph(self, pivot_data, kpi_name, output_file):
+
+        plt.figure(figsize=(14,6))
+
+        for i, column in enumerate(pivot_data.columns):
+
+
+            if i == 0:
+                color = "#007dff"  # 007dff
+            else:
+                color = "#41ba41"  # 41ba41
+
+            plt.plot(
+                pivot_data.index,
+                pivot_data[column],
+                color=color,
+                marker='o',
+                linewidth=2,
+                markersize=4,
+                markerfacecolor="white",     # white center
+                markeredgecolor=color,       # border same as line
+                markeredgewidth=2,
+                label=column
+            )
+            
+    #     plt.plot(
+    #     pivot_data.index,
+    #     pivot_data[column],
+    #     color=color,
+    #     marker='o',
+    #     linewidth=2,
+    #     markersize=4,
+    #     markerfacecolor="white",     # white center
+    #     markeredgecolor=color,       # border same as line
+    #     markeredgewidth=2,
+    #     label=column
+    # )
+
+        plt.title(kpi_name)
+        plt.xlabel("Time")
+        plt.ylabel("Traffic")
+        plt.legend()
+        plt.grid(True)
+
+        plt.xticks(rotation=45)
+
+        plt.tight_layout()
+        plt.savefig(output_file)
+        plt.close()
+
+
+    # Generate all charts
     def generate_charts(self, processor):
-        
+
         kpis = [
-    "PGW-U 2/3G Gi traffic in MB (MB)",
-    "4G Data traffic VDGW(CLOUD) (MB)",
-    "PGW-U 2/3G Gn peak throughput in MB/s (MB/s)",
-    "User Plane SGi downlink user traffic peak throughput in MB/s (MB/s) (MB/s)"
-]
+            "PGW-U 2/3G Gi traffic in MB (MB)",
+            "4G Data traffic VDGW(CLOUD) (MB)",
+            "PGW-U 2/3G Gn peak throughput in MB/s (MB/s)",
+            "User Plane SGi downlink user traffic peak throughput in MB/s (MB/s) (MB/s)"
+        ]
 
         chart_files = []
 
         for i, kpi in enumerate(kpis, start=1):
-            
-            if kpi not in processor.df.columns:
-                print(f"KPI not found in dataset: {kpi}")
-                continue
 
             pivot_data = processor.pivot_kpi(kpi)
 
-            plt.figure(figsize=(10, 5))
+            output_file = f"chart_{i}.png"
 
-            for column in pivot_data.columns:
-                plt.plot(pivot_data.index, pivot_data[column], label=column)
+            self.generate_graph(pivot_data, kpi, output_file)
 
-            plt.xlabel("Time")
-            plt.ylabel(kpi)
-            plt.title(kpi)
-            plt.legend()
-            plt.xticks(rotation=45)
-            plt.tight_layout()
-
-            chart_path = f"chart_{i}.png"
-            plt.savefig(chart_path)
-            plt.close()
-
-            chart_files.append(chart_path)
+            chart_files.append(output_file)
 
         return chart_files
 
-    # Generate HTML Report
+
+    # Generate HTML email
     def generate_html(self, health_report):
 
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -121,17 +158,14 @@ class EmailReport:
         <h4>4. SGi Downlink Peak Throughput</h4>
         <img src="cid:chart_4"><br><br>
 
-        <p style="font-size:12px; color:gray;">
-        Automated report from Core Network Monitoring System.
-        </p>
-
         </body>
         </html>
         """
 
         return html
 
-    # Send Email
+
+    # Send email
     def send_email(self, recipients, health_report, processor, attachment_path):
 
         msg = MIMEMultipart("related")
@@ -139,21 +173,22 @@ class EmailReport:
         msg["From"] = self.sender_email
         msg["To"] = ", ".join(recipients)
 
-        # Generate charts
         chart_files = self.generate_charts(processor)
 
-        # Attach HTML
         html_content = self.generate_html(health_report)
         msg.attach(MIMEText(html_content, "html"))
 
-        # Attach charts inline
-        for i, chart_path in enumerate(chart_files, start=1):
-            with open(chart_path, "rb") as f:
-                img = MIMEImage(f.read())
-                img.add_header("Content-ID", f"<chart_{i}>")
-                msg.attach(img)
+        # attach charts
+        for i, chart in enumerate(chart_files, start=1):
 
-        # Attach CSV
+            with open(chart, "rb") as f:
+                img = MIMEImage(f.read())
+
+            img.add_header("Content-ID", f"<chart_{i}>")
+
+            msg.attach(img)
+
+        # attach csv
         with open(attachment_path, "rb") as f:
             part = MIMEBase("application", "octet-stream")
             part.set_payload(f.read())
@@ -174,4 +209,4 @@ class EmailReport:
 
         server.quit()
 
-        print("Professional email with 4 charts sent successfully!")
+        print("Email with charts sent successfully!")

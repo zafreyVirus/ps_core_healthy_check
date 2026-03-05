@@ -1,6 +1,6 @@
 from processor import DataProcessor
+from emailer import EmailReport
 
-# MODULE 1 – DATA PROCESSING
 
 file_path = "./PS Data traffic LMB.csv"
 
@@ -19,12 +19,12 @@ summary = processor.calculate_summary("4G Data traffic VDGW(CLOUD) (MB)")
 print(pivot_data.head())
 print(summary)
 
-# MODULE 2 – HEALTH EVALUATION
 
 CAPACITY_MB = 20000000
 
 
 def evaluate_health(max_value, capacity):
+
     utilization = (max_value / capacity) * 100
 
     if utilization < 70:
@@ -53,6 +53,7 @@ for ne, stats in summary.items():
         "Health Status": status
     }
 
+
 print("\n=== HEALTH REPORT ===")
 
 for ne, report in health_report.items():
@@ -60,9 +61,6 @@ for ne, report in health_report.items():
     for k, v in report.items():
         print(f"{k}: {v}")
 
-# MODULE 4 – PROFESSIONAL EMAIL
-
-from emailer import EmailReport
 
 SENDER_EMAIL = "frasermsusa@gmail.com"
 SENDER_PASSWORD = "ejcmrkbcpxflkwxn"
