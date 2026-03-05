@@ -1,5 +1,6 @@
 from processor import DataProcessor
 from emailer import EmailReport
+from excel_report import ExcelReport
 
 
 file_path = "./PS Data traffic LMB.csv"
@@ -62,6 +63,31 @@ for ne, report in health_report.items():
         print(f"{k}: {v}")
 
 
+# ===== GENERATE CHARTS =====
+
+processor.plot_kpi(
+    "PGW-U 2/3G Gi traffic in MB (MB)",
+    "chart_gi.png"
+)
+
+processor.plot_kpi(
+    "4G Data traffic VDGW(CLOUD) (MB)",
+    "chart_4g.png"
+)
+
+processor.plot_kpi(
+    "PGW-U 2/3G Gn peak throughput in MB/s (MB/s)",
+    "chart_gn.png"
+)
+
+processor.plot_kpi(
+    "User Plane SGi downlink user traffic peak throughput in MB/s (MB/s) (MB/s)",
+    "chart_sgi.png"
+)
+
+
+# ===== SEND EMAIL =====
+
 SENDER_EMAIL = "frasermsusa@gmail.com"
 SENDER_PASSWORD = "ejcmrkbcpxflkwxn"
 
@@ -74,4 +100,22 @@ email_report.send_email(
     health_report,
     processor,
     file_path
+)
+
+
+# ===== CREATE EXCEL REPORT =====
+
+excel = ExcelReport("Fraser Msusa")
+
+chart_paths = [
+    "chart_gi.png",
+    "chart_4g.png",
+    "chart_gn.png",
+    "chart_sgi.png"
+]
+
+excel.create_report(
+    chart_paths,
+    health_report,
+    "PS_Core_Health_Report.xlsx"
 )
